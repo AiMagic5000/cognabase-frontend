@@ -1,0 +1,57 @@
+services:
+    awcg08coswoc8088gsgswkog-144848047119:
+        image: 'awcg08coswoc8088gsgswkog:ca45147254dcf7f756a1246036edb92e1896dd2d'
+        container_name: awcg08coswoc8088gsgswkog-144848047119
+        restart: unless-stopped
+        expose:
+            - '3000'
+        networks:
+            coolify:
+                aliases:
+                    - awcg08coswoc8088gsgswkog-144848047119
+        mem_limit: '0'
+        memswap_limit: '0'
+        mem_swappiness: 60
+        mem_reservation: '0'
+        cpus: 0.0
+        cpu_shares: 1024
+        env_file:
+            - .env
+        labels:
+            - traefik.enable=true
+            - traefik.http.middlewares.gzip.compress=true
+            - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+            - traefik.http.routers.http-0-awcg08coswoc8088gsgswkog.entryPoints=http
+            - traefik.http.routers.http-0-awcg08coswoc8088gsgswkog.middlewares=redirect-to-https
+            - 'traefik.http.routers.http-0-awcg08coswoc8088gsgswkog.rule=Host(`cognabase.com`) && PathPrefix(`/`)'
+            - traefik.http.routers.http-0-awcg08coswoc8088gsgswkog.service=http-0-awcg08coswoc8088gsgswkog
+            - traefik.http.routers.https-0-awcg08coswoc8088gsgswkog.entryPoints=https
+            - traefik.http.routers.https-0-awcg08coswoc8088gsgswkog.middlewares=gzip
+            - 'traefik.http.routers.https-0-awcg08coswoc8088gsgswkog.rule=Host(`cognabase.com`) && PathPrefix(`/`)'
+            - traefik.http.routers.https-0-awcg08coswoc8088gsgswkog.service=https-0-awcg08coswoc8088gsgswkog
+            - traefik.http.routers.https-0-awcg08coswoc8088gsgswkog.tls.certresolver=letsencrypt
+            - traefik.http.routers.https-0-awcg08coswoc8088gsgswkog.tls=true
+            - traefik.http.services.http-0-awcg08coswoc8088gsgswkog.loadbalancer.server.port=3000
+            - traefik.http.services.https-0-awcg08coswoc8088gsgswkog.loadbalancer.server.port=3000
+            - 'caddy_0.encode=zstd gzip'
+            - 'caddy_0.handle_path.0_reverse_proxy={{upstreams 3000}}'
+            - 'caddy_0.handle_path=/*'
+            - caddy_0.header=-Server
+            - 'caddy_0.try_files={path} /index.html /index.php'
+            - 'caddy_0=https://cognabase.com'
+            - caddy_ingress_network=coolify
+            - coolify.managed=true
+            - coolify.version=4.0.0-beta.454
+            - coolify.applicationId=3
+            - coolify.type=application
+            - coolify.name=awcg08coswoc8088gsgswkog
+            - coolify.resourceName=cognabase
+            - coolify.projectName=cognabase
+            - coolify.serviceName=cognabase
+            - coolify.environmentName=production
+            - coolify.pullRequestId=0
+networks:
+    coolify:
+        external: true
+        name: coolify
+        attachable: true

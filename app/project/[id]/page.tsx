@@ -2,11 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
 import { supabase, Project } from '@/lib/supabase';
 import Link from 'next/link';
 import { ArrowLeft, Copy, Check, Trash2, Loader2, AlertCircle, ExternalLink, Server, Lock, Database, Key, Shield } from 'lucide-react';
 import { showToast } from '@/lib/toast';
+
+// Check if auth bypass is enabled
+const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
+
+// Mock user for bypass mode
+const mockUser = {
+  id: 'dev-user-123',
+  firstName: 'Dev',
+  fullName: 'Dev User',
+};
+
+// Conditional Clerk imports
+const useUser = bypassAuth
+  ? () => ({ user: mockUser, isLoaded: true })
+  : require('@clerk/nextjs').useUser;
 
 const STEP_MESSAGES: Record<string, string> = {
   validating: '🔍 Validating project configuration...',

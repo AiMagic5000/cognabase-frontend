@@ -3,12 +3,38 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser, UserButton, SignedIn } from '@clerk/nextjs';
 import { supabase, Project } from '@/lib/supabase';
 import { Plus, Loader2, Clock, CheckCircle2, AlertCircle, Sparkles, Search } from 'lucide-react';
 import { SkeletonGrid } from '@/components/skeleton';
 import { Badge } from '@/components/badge';
 import { showToast } from '@/lib/toast';
+
+// Check if auth bypass is enabled
+const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
+
+// Mock user for bypass mode
+const mockUser = {
+  id: 'dev-user-123',
+  firstName: 'Dev',
+  fullName: 'Dev User',
+};
+
+// Conditional Clerk imports
+const useUser = bypassAuth
+  ? () => ({ user: mockUser, isLoaded: true })
+  : require('@clerk/nextjs').useUser;
+
+const UserButton = bypassAuth
+  ? () => (
+      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
+        D
+      </div>
+    )
+  : require('@clerk/nextjs').UserButton;
+
+const SignedIn = bypassAuth
+  ? ({ children }: { children: React.ReactNode }) => <>{children}</>
+  : require('@clerk/nextjs').SignedIn;
 
 const PROJECTS_PER_PAGE = 6;
 

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { ClerkProvider } from '@clerk/nextjs';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from './providers';
 import './globals.css';
@@ -26,22 +26,34 @@ export const metadata: Metadata = {
   },
 };
 
+// Check if auth bypass is enabled for local development
+const bypassAuth = process.env.BYPASS_AUTH === 'true';
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const content = (
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+
+  // Skip ClerkProvider when bypassing auth for local development
+  if (bypassAuth) {
+    return content;
+  }
+
   return (
-    <ClerkProvider 
+    <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      signInFallbackRedirectUrl="/projects" 
+      signInFallbackRedirectUrl="/projects"
       signUpFallbackRedirectUrl="/projects"
     >
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <Providers>{children}</Providers>
-        </body>
-      </html>
+      {content}
     </ClerkProvider>
   );
 }

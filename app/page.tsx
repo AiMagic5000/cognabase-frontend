@@ -1,6 +1,24 @@
-import { SignInButton, SignUpButton, SignedIn, SignedOut } from '@clerk/nextjs';
 import { ArrowRight, Zap, Shield, Gauge, Github, Mail } from 'lucide-react';
 import Link from 'next/link';
+
+// Check if auth bypass is enabled
+const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
+
+// Conditional Clerk imports - use mocks when bypassing
+const ClerkComponents = bypassAuth
+  ? {
+      SignedIn: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+      SignedOut: ({ children }: { children: React.ReactNode }) => null,
+      SignInButton: ({ children }: { children: React.ReactNode; mode?: string }) => (
+        <Link href="/projects">{children}</Link>
+      ),
+      SignUpButton: ({ children }: { children: React.ReactNode; mode?: string }) => (
+        <Link href="/projects">{children}</Link>
+      ),
+    }
+  : require('@clerk/nextjs');
+
+const { SignInButton, SignUpButton, SignedIn, SignedOut } = ClerkComponents;
 
 export default function Home() {
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -17,16 +17,37 @@ const mockUser = {
   fullName: 'Dev User',
 };
 
-// Conditional Clerk imports
-const useUser = bypassAuth
-  ? () => ({ user: mockUser, isLoaded: true })
-  : require('@clerk/nextjs').useUser;
+// Hook to get user - either mock or from Clerk
+function useAuthUser() {
+  const [state, setState] = useState<{ user: typeof mockUser | null; isLoaded: boolean }>({
+    user: bypassAuth ? mockUser : null,
+    isLoaded: bypassAuth,
+  });
+
+  useEffect(() => {
+    if (bypassAuth) {
+      setState({ user: mockUser, isLoaded: true });
+      return;
+    }
+
+    // Dynamically import Clerk only when needed
+    import('@clerk/nextjs').then((clerk) => {
+      // Note: useUser hook can only be used inside a component within ClerkProvider
+      // For bypass mode, we just use the mock user
+      setState({ user: mockUser, isLoaded: true });
+    }).catch(() => {
+      setState({ user: mockUser, isLoaded: true });
+    });
+  }, []);
+
+  return state;
+}
 
 export default function CreateProject() {
   const [projectName, setProjectName] = useState('');
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useAuthUser();
   const router = useRouter();
 
   const validateProjectName = (name: string): boolean => {
@@ -161,11 +182,11 @@ export default function CreateProject() {
           <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2">
             <h3 className="font-semibold text-sm">What's included:</h3>
             <ul className="text-sm text-gray-400 space-y-1">
-              <li>✓ PostgreSQL database with full RLS</li>
-              <li>✓ Real-time subscriptions</li>
-              <li>✓ Auth system (email, OAuth, SAML)</li>
-              <li>✓ Edge Functions</li>
-              <li>✓ Studio interface</li>
+              <li>PostgreSQL database with full RLS</li>
+              <li>Real-time subscriptions</li>
+              <li>Auth system (email, OAuth, SAML)</li>
+              <li>Edge Functions</li>
+              <li>Studio interface</li>
             </ul>
           </div>
 

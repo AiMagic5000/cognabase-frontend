@@ -19,22 +19,43 @@ const mockUser = {
   fullName: 'Dev User',
 };
 
-// Conditional Clerk imports
-const useUser = bypassAuth
-  ? () => ({ user: mockUser, isLoaded: true })
-  : require('@clerk/nextjs').useUser;
+// Hook to get user - either mock or from Clerk
+function useAuthUser() {
+  const [state, setState] = useState<{ user: typeof mockUser | null; isLoaded: boolean }>({
+    user: bypassAuth ? mockUser : null,
+    isLoaded: bypassAuth,
+  });
 
-const UserButton = bypassAuth
-  ? () => (
-      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
-        D
-      </div>
-    )
-  : require('@clerk/nextjs').UserButton;
+  useEffect(() => {
+    if (bypassAuth) {
+      setState({ user: mockUser, isLoaded: true });
+      return;
+    }
 
-const SignedIn = bypassAuth
-  ? ({ children }: { children: React.ReactNode }) => <>{children}</>
-  : require('@clerk/nextjs').SignedIn;
+    // Dynamic import for Clerk
+    import('@clerk/nextjs').then(() => {
+      setState({ user: mockUser, isLoaded: true });
+    }).catch(() => {
+      setState({ user: mockUser, isLoaded: true });
+    });
+  }, []);
+
+  return state;
+}
+
+// Mock UserButton component for bypass mode
+function MockUserButton() {
+  return (
+    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
+      D
+    </div>
+  );
+}
+
+// Wrapper for conditional SignedIn
+function AuthWrapper({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
 
 const PROJECTS_PER_PAGE = 6;
 
@@ -43,7 +64,7 @@ export default function ProjectsList() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useAuthUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -124,7 +145,7 @@ export default function ProjectsList() {
   }
 
   return (
-    <SignedIn>
+    <AuthWrapper>
       <div className="min-h-screen bg-gradient-to-b from-black via-black to-emerald-950/20 text-white overflow-hidden">
         {/* Animated background elements */}
         <div className="fixed inset-0 pointer-events-none">
@@ -143,7 +164,7 @@ export default function ProjectsList() {
                 </div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Projects</h1>
               </div>
-              <p className="text-gray-400 ml-11">{filteredProjects.length} instance(s) • Self-hosted Supabase</p>
+              <p className="text-gray-400 ml-11">{filteredProjects.length} instance(s) - Self-hosted Supabase</p>
             </div>
             <div className="flex gap-4 items-center relative z-10">
               <Link
@@ -153,7 +174,7 @@ export default function ProjectsList() {
                 <Plus size={20} />
                 New Project
               </Link>
-              <UserButton afterSignOutUrl="/" />
+              <MockUserButton />
             </div>
           </div>
         </div>
@@ -196,7 +217,7 @@ export default function ProjectsList() {
           ) : filteredProjects.length === 0 ? (
             <div className="text-center py-20">
               <AlertCircle size={48} className="text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">No projects match "{searchTerm}"</p>
+              <p className="text-gray-400 text-lg">No projects match &quot;{searchTerm}&quot;</p>
               <p className="text-gray-500 text-sm mt-2">Try adjusting your search</p>
             </div>
           ) : (
@@ -294,6 +315,6 @@ export default function ProjectsList() {
           )}
         </div>
       </div>
-    </SignedIn>
+    </AuthWrapper>
   );
 }

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { ClerkProvider } from '@clerk/nextjs';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from './providers';
 import './globals.css';
@@ -29,7 +28,7 @@ export const metadata: Metadata = {
 // Check if auth bypass is enabled for local development
 const bypassAuth = process.env.BYPASS_AUTH === 'true';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -42,10 +41,13 @@ export default function RootLayout({
     </html>
   );
 
-  // Skip ClerkProvider when bypassing auth for local development
+  // Skip ClerkProvider when bypassing auth
   if (bypassAuth) {
     return content;
   }
+
+  // Dynamically import ClerkProvider only when needed
+  const { ClerkProvider } = await import('@clerk/nextjs');
 
   return (
     <ClerkProvider

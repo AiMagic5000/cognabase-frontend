@@ -10,11 +10,11 @@ import { showToast } from '@/lib/toast';
 // Check if auth bypass is enabled
 const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
 
-// Mock user for bypass mode
+// Mock user for bypass mode - use actual Clerk user ID to show existing projects
 const mockUser = {
-  id: 'dev-user-123',
-  firstName: 'Dev',
-  fullName: 'Dev User',
+  id: 'user_37zdHKMFKLlZiykgtvhezJDxO8c',
+  firstName: 'Admin',
+  fullName: 'Admin User',
 };
 
 // Hook to get user - either mock or from Clerk
